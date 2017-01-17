@@ -13,15 +13,10 @@ import javax.persistence.Table;
 
 @Entity
 @NamedQueries({
-        @NamedQuery(name = WorldCatEntity.GET_BY_PID_QUERY_NAME, query = WorldCatEntity.GET_BY_PID_QUERY),
         @NamedQuery(name = WorldCatEntity.GET_BY_AGENCYID_BIBLIOGRAPHICRECORDID_QUERY_NAME, query = WorldCatEntity.GET_BY_AGENCYID_BIBLIOGRAPHICRECORDID_QUERY)
 })
 @Table(name = "worldcat")
 public class WorldCatEntity {
-    public static final String GET_BY_PID_QUERY =
-            "SELECT entity FROM WorldCatEntity entity WHERE entity.pid = :pid";
-    public static final String GET_BY_PID_QUERY_NAME = "WorldCatEntity.getByPid";
-
     public static final String GET_BY_AGENCYID_BIBLIOGRAPHICRECORDID_QUERY =
             "SELECT entity FROM WorldCatEntity entity WHERE entity.agencyId = :agencyId AND entity.bibliographicRecordId = :bibliographicRecordId";
     public static final String GET_BY_AGENCYID_BIBLIOGRAPHICRECORDID_QUERY_NAME = "WorldCatEntity.getByAgencyIdBibliographicRecordId";

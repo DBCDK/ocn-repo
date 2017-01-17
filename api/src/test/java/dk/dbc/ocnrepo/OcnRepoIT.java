@@ -25,6 +25,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIVER;
@@ -32,7 +33,6 @@ import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASS
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 public class OcnRepoIT {
@@ -93,25 +93,23 @@ public class OcnRepoIT {
 
     @Test
     public void worldcatEntityLookedUpByPid() {
-        assertThat(entityManager.createNamedQuery(WorldCatEntity.GET_BY_PID_QUERY_NAME, WorldCatEntity.class)
-                        .setParameter("pid", "870970-basis:44260441")
-                        .getResultList()
-                        .stream()
-                        .findFirst()
-                .       orElse(null),
-            is(notNullValue()));
+        final OcnRepo ocnRepo = ocnRepo();
+        final List<WorldCatEntity> result = ocnRepo.lookupWorldCatEntity(new WorldCatEntity()
+                                                            .withPid("870970-basis:44260441"));
+        assertThat("Number of results", result.size(), is(1));
     }
 
     @Test
     public void worldcatEntityLookedUpByAgencyIdAndBibliographicRecordId() {
-        assertThat(entityManager.createNamedQuery(WorldCatEntity.GET_BY_AGENCYID_BIBLIOGRAPHICRECORDID_QUERY_NAME, WorldCatEntity.class)
-                        .setParameter("agencyId", 870970)
-                        .setParameter("bibliographicRecordId", "44260441")
-                        .getResultList()
-                        .stream()
-                        .findFirst()
-                        .orElse(null),
-            is(notNullValue()));
+        final OcnRepo ocnRepo = ocnRepo();
+        final List<WorldCatEntity> result = ocnRepo.lookupWorldCatEntity(new WorldCatEntity()
+                                                            .withAgencyId(870970)
+                                                            .withBibliographicRecordId("44260441"));
+        assertThat("Number of results", result.size(), is(1));
+    }
+
+    private OcnRepo ocnRepo() {
+        return new OcnRepo(entityManager);
     }
 
     private static int getPostgresqlPort() {
