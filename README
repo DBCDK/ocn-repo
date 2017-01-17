@@ -6,4 +6,5 @@ DBC repository for OCLC WorldCat IDs (OCNs).
 Documentation
 -------------
 
-A project wishing to utilize the API must provide a DataSource resource via JNDI name jdbc/ocn-repo.
+A project wishing to utilize the API must provide a DataSource resource via JNDI name jdbc/ocn-repo and inject an
+entity-manager for a persistence unit called ocnRepoPU.
