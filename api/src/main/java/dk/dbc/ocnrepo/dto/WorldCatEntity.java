@@ -26,6 +26,7 @@ public class WorldCatEntity {
     private String ocn;
     private String bibliographicRecordId;
     private Integer agencyId;
+    private Integer checksum;
 
     public String getPid() {
         return pid;
@@ -63,6 +64,15 @@ public class WorldCatEntity {
         return this;
     }
 
+    public Integer getChecksum() {
+        return checksum;
+    }
+
+    public WorldCatEntity withChecksum(Integer checksum) {
+        this.checksum = checksum;
+        return this;
+    }
+
     @Override
     public String toString() {
         return "WorldCatEntity{" +
@@ -70,6 +80,7 @@ public class WorldCatEntity {
                 ", ocn='" + ocn + '\'' +
                 ", bibliographicRecordId='" + bibliographicRecordId + '\'' +
                 ", agencyId=" + agencyId +
+                ", checksum=" + checksum +
                 '}';
     }
 }

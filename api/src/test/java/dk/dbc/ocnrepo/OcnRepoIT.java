@@ -106,6 +106,7 @@ public class OcnRepoIT {
                                                             .withAgencyId(870970)
                                                             .withBibliographicRecordId("44260441"));
         assertThat("Number of results", result.size(), is(1));
+        assertThat("default checksum", result.get(0).getChecksum(), is(0));
     }
 
     private OcnRepo ocnRepo() {
