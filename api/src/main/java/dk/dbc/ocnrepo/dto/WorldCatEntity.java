@@ -14,7 +14,8 @@ import javax.persistence.Table;
 @Entity
 @NamedQueries({
         @NamedQuery(name = WorldCatEntity.GET_BY_AGENCYID_BIBLIOGRAPHICRECORDID_QUERY_NAME, query = WorldCatEntity.GET_BY_AGENCYID_BIBLIOGRAPHICRECORDID_QUERY),
-        @NamedQuery(name = WorldCatEntity.GET_PID_LIST_BY_OCN_QUERY_NAME, query = WorldCatEntity.GET_PID_LIST_BY_OCN_QUERY)
+        @NamedQuery(name = WorldCatEntity.GET_PID_LIST_BY_OCN_QUERY_NAME, query = WorldCatEntity.GET_PID_LIST_BY_OCN_QUERY),
+        @NamedQuery(name = WorldCatEntity.GET_OCN_BY_PID_QUERY_NAME, query = WorldCatEntity.GET_OCN_BY_PID_QUERY)
 })
 @Table(name = "worldcat")
 public class WorldCatEntity {
@@ -22,8 +23,11 @@ public class WorldCatEntity {
             "SELECT entity FROM WorldCatEntity entity WHERE entity.agencyId = :agencyId AND entity.bibliographicRecordId = :bibliographicRecordId";
     public static final String GET_PID_LIST_BY_OCN_QUERY =
         "SELECT entity.pid FROM WorldCatEntity entity WHERE entity.ocn = :ocn";
+    public static final String GET_OCN_BY_PID_QUERY =
+        "SELECT entity.ocn FROM WorldCatEntity entity WHERE entity.pid = :pid";
     public static final String GET_BY_AGENCYID_BIBLIOGRAPHICRECORDID_QUERY_NAME = "WorldCatEntity.getByAgencyIdBibliographicRecordId";
     public static final String GET_PID_LIST_BY_OCN_QUERY_NAME = "WorldCatEntity.getPidListByOcn";
+    public static final String GET_OCN_BY_PID_QUERY_NAME = "WorldCatEntity.getOcnByPid";
 
     @Id
     private String pid;

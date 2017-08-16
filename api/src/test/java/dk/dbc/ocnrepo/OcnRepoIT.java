@@ -120,6 +120,15 @@ public class OcnRepoIT {
         assertThat("pid", result.get(1), is("870970-basis:44260442"));
     }
 
+    @Test
+    public void getOcnByPid() {
+        final OcnRepo ocnRepo = ocnRepo();
+        final String pid = "870970-basis:44260441";
+        final String ocn = ocnRepo.getOcnByPid(pid);
+
+        assertThat("ocn", ocn, is("871992862"));
+    }
+
     private OcnRepo ocnRepo() {
         return new OcnRepo(entityManager);
     }

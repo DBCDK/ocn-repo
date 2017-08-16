@@ -64,6 +64,18 @@ public class OcnRepo {
         return pids;
     }
 
+    /**
+     * Gets an ocn by pid
+     * @param pid the pid to look up
+     * @returns an ocn
+     */
+    public String getOcnByPid(String pid) {
+        final String ocn = entityManager.createNamedQuery(
+            WorldCatEntity.GET_OCN_BY_PID_QUERY_NAME, String.class)
+            .setParameter("pid", pid).getSingleResult();
+        return ocn;
+    }
+
     public EntityManager getEntityManager() {
         return entityManager;
     }
