@@ -52,6 +52,11 @@ public class OcnRepo {
         return result;
     }
 
+    /**
+     * Gets a list of pids by an ocn
+     * @param ocn the ocn to look up
+     * @returns a list of pids
+     */
     public List<String> pidListFromOcn(String ocn) {
         final List<String> pids = entityManager.createNamedQuery(
             WorldCatEntity.GET_PID_LIST_BY_OCN_QUERY_NAME, String.class)
