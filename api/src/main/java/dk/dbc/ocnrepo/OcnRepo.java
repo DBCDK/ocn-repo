@@ -57,7 +57,7 @@ public class OcnRepo {
     /**
      * Gets a list of pids by an ocn
      * @param ocn the ocn to look up
-     * @returns a list of pids
+     * @return a list of pids
      */
     public List<String> pidListFromOcn(String ocn) {
         final List<String> pids = entityManager.createNamedQuery(
@@ -69,7 +69,7 @@ public class OcnRepo {
     /**
      * Gets an ocn by pid
      * @param pid the pid to look up
-     * @returns an ocn
+     * @return an ocn
      */
     public Optional<String> getOcnByPid(String pid) {
         try {
