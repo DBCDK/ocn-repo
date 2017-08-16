@@ -13,6 +13,7 @@ import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * This class contains the ocn repository API
@@ -70,11 +71,15 @@ public class OcnRepo {
      * @param pid the pid to look up
      * @returns an ocn
      */
-    public String getOcnByPid(String pid) throws NoResultException {
-        final String ocn = entityManager.createNamedQuery(
-            WorldCatEntity.GET_OCN_BY_PID_QUERY_NAME, String.class)
-            .setParameter("pid", pid).getSingleResult();
-        return ocn;
+    public Optional<String> getOcnByPid(String pid) {
+        try {
+            final String ocn = entityManager.createNamedQuery(
+                WorldCatEntity.GET_OCN_BY_PID_QUERY_NAME, String.class)
+                .setParameter("pid", pid).getSingleResult();
+            return Optional.of(ocn);
+        } catch(NoResultException e) {
+            return Optional.empty();
+        }
     }
 
     public EntityManager getEntityManager() {

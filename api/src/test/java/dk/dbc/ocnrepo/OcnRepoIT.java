@@ -28,6 +28,7 @@ import java.sql.Statement;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIVER;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASSWORD;
@@ -126,17 +127,19 @@ public class OcnRepoIT {
     public void getOcnByPid() {
         final OcnRepo ocnRepo = ocnRepo();
         final String pid = "870970-basis:44260441";
-        final String ocn = ocnRepo.getOcnByPid(pid);
+        final Optional<String> ocn = ocnRepo.getOcnByPid(pid);
 
-        assertThat("ocn", ocn, is("871992862"));
+        assertThat("is present", ocn.isPresent(), is(true));
+        assertThat("ocn", ocn.get(), is("871992862"));
     }
 
-    @Test(expected = NoResultException.class)
+    @Test
     public void getOcnByPid_noResultsFound() {
         final OcnRepo ocnRepo = ocnRepo();
         final String pid = "noSuchPid";
-        ocnRepo.getOcnByPid(pid);
-        fail("no exception thrown");
+        final Optional<String> ocn = ocnRepo.getOcnByPid(pid);
+
+        assertThat("is not present", ocn.isPresent(), is(false));
     }
 
     private OcnRepo ocnRepo() {
