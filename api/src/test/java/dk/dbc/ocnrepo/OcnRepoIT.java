@@ -109,6 +109,17 @@ public class OcnRepoIT {
         assertThat("default checksum", result.get(0).getChecksum(), is(0));
     }
 
+    @Test
+    public void getPidListFromOcn() {
+        final OcnRepo ocnRepo = ocnRepo();
+        final String ocn = "871992862";
+        final List<String> result = ocnRepo.pidListFromOcn(ocn);
+
+        assertThat("number of results", result.size(), is(2));
+        assertThat("pid", result.get(0), is("870970-basis:44260441"));
+        assertThat("pid", result.get(1), is("870970-basis:44260442"));
+    }
+
     private OcnRepo ocnRepo() {
         return new OcnRepo(entityManager);
     }

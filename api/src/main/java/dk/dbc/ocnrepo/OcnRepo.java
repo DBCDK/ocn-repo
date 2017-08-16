@@ -52,6 +52,13 @@ public class OcnRepo {
         return result;
     }
 
+    public List<String> pidListFromOcn(String ocn) {
+        final List<String> pids = entityManager.createNamedQuery(
+            WorldCatEntity.GET_PID_LIST_BY_OCN_QUERY_NAME, String.class)
+            .setParameter("ocn", ocn).getResultList();
+        return pids;
+    }
+
     public EntityManager getEntityManager() {
         return entityManager;
     }
