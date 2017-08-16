@@ -15,6 +15,7 @@ import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.NoResultException;
 import javax.persistence.Persistence;
 import java.io.File;
 import java.io.IOException;
@@ -34,6 +35,7 @@ import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public class OcnRepoIT {
     private static final PGSimpleDataSource datasource;
@@ -127,6 +129,14 @@ public class OcnRepoIT {
         final String ocn = ocnRepo.getOcnByPid(pid);
 
         assertThat("ocn", ocn, is("871992862"));
+    }
+
+    @Test(expected = NoResultException.class)
+    public void getOcnByPid_noResultsFound() {
+        final OcnRepo ocnRepo = ocnRepo();
+        final String pid = "noSuchPid";
+        ocnRepo.getOcnByPid(pid);
+        fail("no exception thrown");
     }
 
     private OcnRepo ocnRepo() {
