@@ -142,6 +142,15 @@ public class OcnRepoIT {
         assertThat("is not present", ocn.isPresent(), is(false));
     }
 
+    @Test
+    public void getEntitiesWithLHR() {
+        final OcnRepo ocnRepo = ocnRepo();
+        final List<WorldCatEntity> result = ocnRepo.getEntitiesWithLHR();
+
+        assertThat("number of results", result.size(), is(2));
+        assertThat("pid", result.get(0).getPid(), is("870970-basis:44260443"));
+    }
+
     private OcnRepo ocnRepo() {
         return new OcnRepo(entityManager);
     }

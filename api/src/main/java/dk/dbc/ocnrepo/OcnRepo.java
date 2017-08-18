@@ -82,6 +82,17 @@ public class OcnRepo {
         }
     }
 
+    /**
+     * Gets a list of worldcat entities with local holdings records
+     * @return list of entities with lhr
+     */
+    public List<WorldCatEntity> getEntitiesWithLHR() {
+        final List<WorldCatEntity> result = entityManager.createNamedQuery(
+            WorldCatEntity.GET_ENTITIES_WITH_LHR_QUERY_NAME,
+            WorldCatEntity.class).getResultList();
+        return result;
+    }
+
     public EntityManager getEntityManager() {
         return entityManager;
     }
