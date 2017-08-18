@@ -37,8 +37,8 @@ public class WorldCatEntity {
     private String pid;
     private String ocn;
     private String bibliographicRecordId;
+    private String checksum;
     private Integer agencyId;
-    private Integer checksum;
     private boolean hasLHR;
 
     public String getPid() {
@@ -77,11 +77,11 @@ public class WorldCatEntity {
         return this;
     }
 
-    public Integer getChecksum() {
+    public String getChecksum() {
         return checksum;
     }
 
-    public WorldCatEntity withChecksum(Integer checksum) {
+    public WorldCatEntity withChecksum(String checksum) {
         this.checksum = checksum;
         return this;
     }
@@ -101,8 +101,9 @@ public class WorldCatEntity {
                 "pid='" + pid + '\'' +
                 ", ocn='" + ocn + '\'' +
                 ", bibliographicRecordId='" + bibliographicRecordId + '\'' +
+                ", checksum='" + checksum + '\'' +
                 ", agencyId=" + agencyId +
-                ", checksum=" + checksum +
+                ", hasLHR=" + hasLHR +
                 '}';
     }
 }

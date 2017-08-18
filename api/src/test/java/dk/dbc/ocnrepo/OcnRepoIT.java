@@ -35,6 +35,7 @@ import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASS
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class OcnRepoIT {
@@ -108,7 +109,7 @@ public class OcnRepoIT {
                                                             .withAgencyId(870970)
                                                             .withBibliographicRecordId("44260441"));
         assertThat("Number of results", result.size(), is(1));
-        assertThat("default checksum", result.get(0).getChecksum(), is(0));
+        assertThat("default checksum", result.get(0).getChecksum(), is(nullValue()));
     }
 
     @Test
