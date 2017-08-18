@@ -5,12 +5,14 @@
 
 package dk.dbc.ocnrepo;
 
+import dk.dbc.commons.jdbc.util.CursoredResultSet;
 import dk.dbc.ocnrepo.dto.WorldCatEntity;
 
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -83,14 +85,14 @@ public class OcnRepo {
     }
 
     /**
-     * Gets a list of worldcat entities with local holdings records
-     * @return list of entities with lhr
+     * Gets a result set of worldcat entities with local holdings records
+     * @return result set of entities with lhr
      */
-    public List<WorldCatEntity> getEntitiesWithLHR() {
-        final List<WorldCatEntity> result = entityManager.createNamedQuery(
+    public CursoredResultSet<WorldCatEntity> getEntitiesWithLHR() {
+        final Query query = entityManager.createNamedQuery(
             WorldCatEntity.GET_ENTITIES_WITH_LHR_QUERY_NAME,
-            WorldCatEntity.class).getResultList();
-        return result;
+            WorldCatEntity.class);
+        return new CursoredResultSet<>(query);
     }
 
     public EntityManager getEntityManager() {

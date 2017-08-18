@@ -15,7 +15,6 @@ import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.NoResultException;
 import javax.persistence.Persistence;
 import java.io.File;
 import java.io.IOException;
@@ -25,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +36,6 @@ import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 public class OcnRepoIT {
     private static final PGSimpleDataSource datasource;
@@ -145,7 +144,8 @@ public class OcnRepoIT {
     @Test
     public void getEntitiesWithLHR() {
         final OcnRepo ocnRepo = ocnRepo();
-        final List<WorldCatEntity> result = ocnRepo.getEntitiesWithLHR();
+        final List<WorldCatEntity> result = new ArrayList<>();
+        ocnRepo.getEntitiesWithLHR().forEach(result::add);
 
         assertThat("number of results", result.size(), is(2));
         assertThat("pid", result.get(0).getPid(), is("870970-basis:44260443"));
