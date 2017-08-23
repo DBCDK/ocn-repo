@@ -10,12 +10,14 @@
              version="2.1">
   <persistence-unit name="ocnRepoPU" transaction-type="JTA">
     <jta-data-source>jdbc/ocn-repo</jta-data-source>
+    <class>dk.dbc.commons.jpa.converter.StringListToPgTextArrayConverter</class>
     <class>dk.dbc.ocnrepo.dto.WorldCatEntity</class>
     <properties>
       <property name="javax.persistence.schema-generation.database.action" value="none"/>
     </properties>
   </persistence-unit>
   <persistence-unit name="ocnRepoIT" transaction-type="RESOURCE_LOCAL">
+    <class>dk.dbc.commons.jpa.converter.StringListToPgTextArrayConverter</class>
     <class>dk.dbc.ocnrepo.dto.WorldCatEntity</class>
     <properties>
       <property name="javax.persistence.schema-generation.database.action" value="none"/>

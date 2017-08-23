@@ -5,11 +5,16 @@
 
 package dk.dbc.ocnrepo.dto;
 
+import dk.dbc.commons.jpa.converter.StringListToPgTextArrayConverter;
+
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @NamedQueries({
@@ -40,6 +45,9 @@ public class WorldCatEntity {
     private String checksum;
     private Integer agencyId;
     private boolean hasLHR;
+
+    @Convert(converter = StringListToPgTextArrayConverter.class)
+    private List<String> activeHoldingSymbols;
 
     public String getPid() {
         return pid;
@@ -95,6 +103,15 @@ public class WorldCatEntity {
         return this;
     }
 
+    public List<String> getActiveHoldingSymbols() {
+        return new ArrayList<>(activeHoldingSymbols);
+    }
+
+    public WorldCatEntity withActiveHoldingSymbols(List<String> activeHoldingSymbols) {
+        this.activeHoldingSymbols = new ArrayList<>(activeHoldingSymbols);
+        return this;
+    }
+
     @Override
     public String toString() {
         return "WorldCatEntity{" +
@@ -104,6 +121,7 @@ public class WorldCatEntity {
                 ", checksum='" + checksum + '\'' +
                 ", agencyId=" + agencyId +
                 ", hasLHR=" + hasLHR +
+                ", activeHoldingSymbols=" + activeHoldingSymbols +
                 '}';
     }
 }

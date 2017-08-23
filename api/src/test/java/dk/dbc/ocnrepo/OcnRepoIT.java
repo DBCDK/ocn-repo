@@ -17,6 +17,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,7 +60,7 @@ public class OcnRepoIT extends JpaIntegrationTest {
         final OcnRepo ocnRepo = ocnRepo();
         final List<WorldCatEntity> result = ocnRepo.lookupWorldCatEntity(new WorldCatEntity()
                                                             .withPid("870970-basis:44260441"));
-        assertThat("Number of results", result.size(), is(1));
+        assertThat("number of results", result.size(), is(1));
     }
 
     @Test
@@ -67,7 +69,7 @@ public class OcnRepoIT extends JpaIntegrationTest {
         final List<WorldCatEntity> result = ocnRepo.lookupWorldCatEntity(new WorldCatEntity()
                                                             .withAgencyId(870970)
                                                             .withBibliographicRecordId("44260441"));
-        assertThat("Number of results", result.size(), is(1));
+        assertThat("number of results", result.size(), is(1));
         assertThat("default checksum", result.get(0).getChecksum(), is(nullValue()));
     }
 
@@ -109,6 +111,24 @@ public class OcnRepoIT extends JpaIntegrationTest {
 
         assertThat("number of results", result.size(), is(2));
         assertThat("pid", result.get(0).getPid(), is("870970-basis:44260443"));
+    }
+
+    @Test
+    public void activeHoldingSymbols() {
+        final WorldCatEntity entityBeforeUpdate = jpaTestEnvironment.getEntityManager()
+                .find(WorldCatEntity.class, "870970-basis:44260441");
+        assertThat("active holding symbols read", entityBeforeUpdate.getActiveHoldingSymbols(),
+                is(Arrays.asList("ABC", "DEF")));
+
+        jpaTestEnvironment.getPersistenceContext().run(() ->
+                entityBeforeUpdate.withActiveHoldingSymbols(Collections.singletonList("GHI")));
+
+        jpaTestEnvironment.clearEntityManagerCache();
+
+        final WorldCatEntity entityAfterUpdate = jpaTestEnvironment.getEntityManager()
+                .find(WorldCatEntity.class, "870970-basis:44260441");
+        assertThat("active holding symbols written", entityAfterUpdate.getActiveHoldingSymbols(),
+                is(Collections.singletonList("GHI")));
     }
 
     private OcnRepo ocnRepo() {
