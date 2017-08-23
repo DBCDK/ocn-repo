@@ -5,22 +5,14 @@
 
 package dk.dbc.ocnrepo;
 
-import dk.dbc.commons.jdbc.util.JDBCUtil;
+import dk.dbc.commons.persistence.JpaIntegrationTest;
+import dk.dbc.commons.persistence.JpaTestEnvironment;
 import dk.dbc.ocnrepo.dto.WorldCatEntity;
-import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.postgresql.ds.PGSimpleDataSource;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
-import java.io.File;
-import java.io.IOException;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -38,46 +30,19 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
-public class OcnRepoIT {
-    private static final PGSimpleDataSource datasource;
-
-    static {
-        datasource = new PGSimpleDataSource();
-        datasource.setDatabaseName("ocnrepo");
-        datasource.setServerName("localhost");
-        datasource.setPortNumber(getPostgresqlPort());
-        datasource.setUser(System.getProperty("user.name"));
-        datasource.setPassword(System.getProperty("user.name"));
-    }
-
-    private static Map<String, String> entityManagerProperties = new HashMap<>();
-    private static EntityManagerFactory entityManagerFactory;
-    private EntityManager entityManager;
-
-    @BeforeClass
-    public static void migrateDatabase() throws Exception {
-        final OcnRepoDatabaseMigrator dbMigrator = new OcnRepoDatabaseMigrator(datasource);
-        dbMigrator.migrate();
-    }
-
-    @BeforeClass
-    public static void createEntityManagerFactory() {
-        entityManagerProperties.put(JDBC_USER, datasource.getUser());
-        entityManagerProperties.put(JDBC_PASSWORD, datasource.getPassword());
-        entityManagerProperties.put(JDBC_URL, datasource.getUrl());
-        entityManagerProperties.put(JDBC_DRIVER, "org.postgresql.Driver");
-        entityManagerProperties.put("eclipselink.logging.level", "FINE");
-        entityManagerFactory = Persistence.createEntityManagerFactory("ocnRepoIT", entityManagerProperties);
-    }
-
-    @Before
-    public void createEntityManager() {
-        entityManager = entityManagerFactory.createEntityManager(entityManagerProperties);
+public class OcnRepoIT extends JpaIntegrationTest {
+    @Override
+    public JpaTestEnvironment setup() {
+        final PGSimpleDataSource dataSource = getDataSource();
+        migrateDatabase(dataSource);
+        jpaTestEnvironment = new JpaTestEnvironment(dataSource, "ocnRepoIT",
+                getEntityManagerFactoryProperties(dataSource));
+        return jpaTestEnvironment;
     }
 
     @Before
     public void resetDatabase() throws SQLException {
-        try (Connection conn = datasource.getConnection();
+        try (Connection conn = jpaTestEnvironment.getDatasource().getConnection();
              Statement statement = conn.createStatement()) {
             statement.executeUpdate("DELETE FROM worldcat");
         }
@@ -86,12 +51,6 @@ public class OcnRepoIT {
     @Before
     public void populateDatabase() throws URISyntaxException {
         executeScriptResource("/populate.sql");
-    }
-
-    @After
-    public void clearEntityManagerCache() {
-        entityManager.clear();
-        entityManager.getEntityManagerFactory().getCache().evictAll();
     }
 
     @Test
@@ -153,7 +112,7 @@ public class OcnRepoIT {
     }
 
     private OcnRepo ocnRepo() {
-        return new OcnRepo(entityManager);
+        return new OcnRepo(jpaTestEnvironment.getEntityManager());
     }
 
     private static int getPostgresqlPort() {
@@ -164,20 +123,28 @@ public class OcnRepoIT {
         return 5432;
     }
 
-    private static void executeScriptResource(String resourcePath) {
-        final URL resource = OcnRepoIT.class.getResource(resourcePath);
-        try {
-            executeScript(new File(resource.toURI()));
-        } catch (URISyntaxException e) {
-            throw new IllegalStateException(e);
-        }
+    private PGSimpleDataSource getDataSource() {
+        final PGSimpleDataSource datasource = new PGSimpleDataSource();
+        datasource.setDatabaseName("ocnrepo");
+        datasource.setServerName("localhost");
+        datasource.setPortNumber(getPostgresqlPort());
+        datasource.setUser(System.getProperty("user.name"));
+        datasource.setPassword(System.getProperty("user.name"));
+        return datasource;
     }
 
-    private static void executeScript(File scriptFile) {
-        try (Connection conn = datasource.getConnection()) {
-            JDBCUtil.executeScript(conn, scriptFile, StandardCharsets.UTF_8.name());
-        } catch (SQLException | IOException e) {
-            throw new IllegalStateException(e);
-        }
+    private Map<String, String> getEntityManagerFactoryProperties(PGSimpleDataSource datasource) {
+        final Map<String, String> properties = new HashMap<>();
+        properties.put(JDBC_USER, datasource.getUser());
+        properties.put(JDBC_PASSWORD, datasource.getPassword());
+        properties.put(JDBC_URL, datasource.getUrl());
+        properties.put(JDBC_DRIVER, "org.postgresql.Driver");
+        properties.put("eclipselink.logging.level", "FINE");
+        return properties;
+    }
+
+    private void migrateDatabase(PGSimpleDataSource datasource) {
+        final OcnRepoDatabaseMigrator dbMigrator = new OcnRepoDatabaseMigrator(datasource);
+        dbMigrator.migrate();
     }
 }
