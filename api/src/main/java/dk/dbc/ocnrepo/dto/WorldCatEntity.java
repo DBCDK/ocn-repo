@@ -14,6 +14,7 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Entity
@@ -104,11 +105,18 @@ public class WorldCatEntity {
     }
 
     public List<String> getActiveHoldingSymbols() {
-        return new ArrayList<>(activeHoldingSymbols);
+        if (activeHoldingSymbols != null) {
+            return new ArrayList<>(activeHoldingSymbols);
+        }
+        return Collections.emptyList();
     }
 
     public WorldCatEntity withActiveHoldingSymbols(List<String> activeHoldingSymbols) {
-        this.activeHoldingSymbols = new ArrayList<>(activeHoldingSymbols);
+        if (activeHoldingSymbols != null) {
+            this.activeHoldingSymbols = new ArrayList<>(activeHoldingSymbols);
+        } else {
+            this.activeHoldingSymbols = null;
+        }
         return this;
     }
 
