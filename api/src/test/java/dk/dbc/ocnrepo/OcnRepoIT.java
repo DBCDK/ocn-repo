@@ -16,19 +16,16 @@ import java.net.URISyntaxException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIVER;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASSWORD;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
@@ -37,8 +34,7 @@ public class OcnRepoIT extends JpaIntegrationTest {
     public JpaTestEnvironment setup() {
         final PGSimpleDataSource dataSource = getDataSource();
         migrateDatabase(dataSource);
-        jpaTestEnvironment = new JpaTestEnvironment(dataSource, "ocnRepoIT",
-                getEntityManagerFactoryProperties(dataSource));
+        jpaTestEnvironment = new JpaTestEnvironment(dataSource, "ocnRepoIT");
         return jpaTestEnvironment;
     }
 
@@ -131,6 +127,26 @@ public class OcnRepoIT extends JpaIntegrationTest {
                 is(Collections.singletonList("GHI")));
     }
 
+    @Test
+    public void timestamps() {
+        final WorldCatEntity entity = new WorldCatEntity()
+                .withPid("123456-test:id")
+                .withAgencyId(123456)
+                .withBibliographicRecordId("id");
+
+        env().getPersistenceContext().run(() -> env().getEntityManager().persist(entity));
+
+        final Instant createdInitially = entity.getCreated();
+        final Instant modifiedInitially = entity.getModified();
+        assertThat("created after persist", createdInitially, is(notNullValue()));
+        assertThat("modified after persist", modifiedInitially, is(createdInitially));
+
+        env().getPersistenceContext().run(() -> entity.withOcn("ocn"));
+
+        assertThat("created after update", entity.getCreated(), is(createdInitially));
+        assertThat("modified after update", entity.getModified(), is(not(modifiedInitially)));
+    }
+
     private OcnRepo ocnRepo() {
         return new OcnRepo(jpaTestEnvironment.getEntityManager());
     }
@@ -151,16 +167,6 @@ public class OcnRepoIT extends JpaIntegrationTest {
         datasource.setUser(System.getProperty("user.name"));
         datasource.setPassword(System.getProperty("user.name"));
         return datasource;
-    }
-
-    private Map<String, String> getEntityManagerFactoryProperties(PGSimpleDataSource datasource) {
-        final Map<String, String> properties = new HashMap<>();
-        properties.put(JDBC_USER, datasource.getUser());
-        properties.put(JDBC_PASSWORD, datasource.getPassword());
-        properties.put(JDBC_URL, datasource.getUrl());
-        properties.put(JDBC_DRIVER, "org.postgresql.Driver");
-        properties.put("eclipselink.logging.level", "FINE");
-        return properties;
     }
 
     private void migrateDatabase(PGSimpleDataSource datasource) {
