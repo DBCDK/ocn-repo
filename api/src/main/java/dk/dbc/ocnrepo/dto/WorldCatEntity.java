@@ -7,12 +7,17 @@ package dk.dbc.ocnrepo.dto;
 
 import dk.dbc.commons.jpa.converter.StringListToPgTextArrayConverter;
 
+import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import javax.persistence.Table;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -46,6 +51,10 @@ public class WorldCatEntity {
     private String checksum;
     private Integer agencyId;
     private boolean hasLHR;
+
+    @Column(updatable = false)
+    private Timestamp created;
+    private Timestamp modified;
 
     @Convert(converter = StringListToPgTextArrayConverter.class)
     private List<String> activeHoldingSymbols;
@@ -120,6 +129,30 @@ public class WorldCatEntity {
         return this;
     }
 
+    @PrePersist
+    public void setCreated() {
+        created = modified = new Timestamp(System.currentTimeMillis());
+    }
+
+    public Instant getCreated() {
+        if (created != null) {
+            return created.toInstant();
+        }
+        return null;
+    }
+
+    @PreUpdate
+    public void setModified() {
+        modified = new Timestamp(System.currentTimeMillis());
+    }
+
+    public Instant getModified() {
+        if (modified != null) {
+            return modified.toInstant();
+        }
+        return null;
+    }
+
     @Override
     public String toString() {
         return "WorldCatEntity{" +
@@ -129,6 +162,8 @@ public class WorldCatEntity {
                 ", checksum='" + checksum + '\'' +
                 ", agencyId=" + agencyId +
                 ", hasLHR=" + hasLHR +
+                ", created=" + created +
+                ", modified=" + modified +
                 ", activeHoldingSymbols=" + activeHoldingSymbols +
                 '}';
     }
