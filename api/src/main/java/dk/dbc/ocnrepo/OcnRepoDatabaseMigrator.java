@@ -39,7 +39,7 @@ public class OcnRepoDatabaseMigrator {
                 .table("schema_version")
                 .baselineOnMigrate(true)
                 .dataSource(dataSource)
-                .locations("classpath:dk.dbc.ocnrepo.db.migration")
+                .locations("classpath:dk/dbc/ocnrepo/db/migration")
                 .load();
         for (MigrationInfo info : flyway.info().all()) {
             LOGGER.info("database migration {} : {} from file '{}'",
