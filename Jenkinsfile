@@ -41,7 +41,7 @@ pipeline {
             agent {label workerNode}
             steps {
                 step([$class: 'hudson.plugins.pmd.PmdPublisher',
-                      pattern: 'target/pmd.xml',
+                      pattern: '**/target/pmd.xml',
                       unstableTotalAll: "0",
                       failedTotalAll: "0"])
             }
