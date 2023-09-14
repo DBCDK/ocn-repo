@@ -18,21 +18,28 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 public class OcnRepoIT extends JpaIntegrationTest {
+    private static int getPostgresqlPort() {
+        String port = System.getProperty("postgresql.port");
+        if (port != null && !port.isEmpty()) {
+            return Integer.parseInt(port);
+        }
+        return 5432;
+    }
+
     @Override
     public JpaTestEnvironment setup() {
-        final PGSimpleDataSource dataSource = getDataSource();
+        PGSimpleDataSource dataSource = getDataSource();
         migrateDatabase(dataSource);
         jpaTestEnvironment = new JpaTestEnvironment(dataSource, "ocnRepoIT");
         return jpaTestEnvironment;
@@ -40,8 +47,7 @@ public class OcnRepoIT extends JpaIntegrationTest {
 
     @Before
     public void resetDatabase() throws SQLException {
-        try (Connection conn = jpaTestEnvironment.getDatasource().getConnection();
-             Statement statement = conn.createStatement()) {
+        try (Connection conn = jpaTestEnvironment.getDatasource().getConnection(); Statement statement = conn.createStatement()) {
             statement.executeUpdate("DELETE FROM worldcat");
         }
     }
@@ -53,114 +59,89 @@ public class OcnRepoIT extends JpaIntegrationTest {
 
     @Test
     public void worldcatEntityLookedUpByPid() {
-        final OcnRepo ocnRepo = ocnRepo();
-        final List<WorldCatEntity> result = ocnRepo.lookupWorldCatEntity(new WorldCatEntity()
-                                                            .withPid("870970-basis:44260441"));
-        assertThat("number of results", result.size(), is(1));
+        OcnRepo ocnRepo = ocnRepo();
+        List<WorldCatEntity> result = ocnRepo.lookupWorldCatEntity(new WorldCatEntity().withPid("870970-basis:44260441"));
+        assertEquals("number of results", 1, result.size());
     }
 
     @Test
     public void worldcatEntityLookedUpByAgencyIdAndBibliographicRecordId() {
-        final OcnRepo ocnRepo = ocnRepo();
-        final List<WorldCatEntity> result = ocnRepo.lookupWorldCatEntity(new WorldCatEntity()
-                                                            .withAgencyId(870970)
-                                                            .withBibliographicRecordId("44260441"));
-        assertThat("number of results", result.size(), is(1));
-        assertThat("default checksum", result.get(0).getChecksum(), is(nullValue()));
+        OcnRepo ocnRepo = ocnRepo();
+        List<WorldCatEntity> result = ocnRepo.lookupWorldCatEntity(new WorldCatEntity().withAgencyId(870970).withBibliographicRecordId("44260441"));
+        assertEquals("number of results", 1, result.size());
+        assertNull("default checksum", result.get(0).getChecksum());
     }
 
     @Test
     public void getPidListFromOcn() {
-        final OcnRepo ocnRepo = ocnRepo();
+        OcnRepo ocnRepo = ocnRepo();
         final String ocn = "871992862";
-        final List<String> result = ocnRepo.pidListFromOcn(ocn);
-
-        assertThat("number of results", result.size(), is(2));
-        assertThat("pid", result.get(0), is("870970-basis:44260441"));
-        assertThat("pid", result.get(1), is("870970-basis:44260442"));
+        List<String> result = ocnRepo.pidListFromOcn(ocn);
+        assertEquals("pid", List.of("870970-basis:44260441", "870970-basis:44260442"), result);
     }
 
     @Test
     public void getOcnByPid() {
-        final OcnRepo ocnRepo = ocnRepo();
+        OcnRepo ocnRepo = ocnRepo();
         final String pid = "870970-basis:44260441";
-        final Optional<String> ocn = ocnRepo.getOcnByPid(pid);
-
-        assertThat("is present", ocn.isPresent(), is(true));
-        assertThat("ocn", ocn.get(), is("871992862"));
+        String ocn = ocnRepo.getOcnByPid(pid).orElse(null);
+        assertEquals("ocn", "871992862", ocn);
     }
 
     @Test
     public void getOcnByPid_noResultsFound() {
-        final OcnRepo ocnRepo = ocnRepo();
+        OcnRepo ocnRepo = ocnRepo();
         final String pid = "noSuchPid";
-        final Optional<String> ocn = ocnRepo.getOcnByPid(pid);
-
-        assertThat("is not present", ocn.isPresent(), is(false));
+        Optional<String> ocn = ocnRepo.getOcnByPid(pid);
+        assertFalse("is not present", ocn.isPresent());
     }
 
     @Test
     public void getEntitiesWithLHR() {
-        final OcnRepo ocnRepo = ocnRepo();
-        final List<WorldCatEntity> result = new ArrayList<>();
+        OcnRepo ocnRepo = ocnRepo();
+        List<WorldCatEntity> result = new ArrayList<>();
         ocnRepo.getEntitiesWithLHR().forEach(result::add);
 
-        assertThat("number of results", result.size(), is(2));
-        assertThat("pid", result.get(0).getPid(), is("870970-basis:44260443"));
+        assertEquals("number of results", 2, result.size());
+        assertEquals("pid", "870970-basis:44260443", result.get(0).getPid());
     }
 
     @Test
     public void activeHoldingSymbols() {
-        final WorldCatEntity entityBeforeUpdate = jpaTestEnvironment.getEntityManager()
-                .find(WorldCatEntity.class, "870970-basis:44260441");
-        assertThat("active holding symbols read", entityBeforeUpdate.getActiveHoldingSymbols(),
-                is(Arrays.asList("ABC", "DEF")));
+        WorldCatEntity entityBeforeUpdate = jpaTestEnvironment.getEntityManager().find(WorldCatEntity.class, "870970-basis:44260441");
+        assertEquals("active holding symbols read", List.of("ABC", "DEF"), entityBeforeUpdate.getActiveHoldingSymbols());
 
-        jpaTestEnvironment.getPersistenceContext().run(() ->
-                entityBeforeUpdate.withActiveHoldingSymbols(Collections.singletonList("GHI")));
+        jpaTestEnvironment.getPersistenceContext().run(() -> entityBeforeUpdate.withActiveHoldingSymbols(Collections.singletonList("GHI")));
 
         jpaTestEnvironment.clearEntityManagerCache();
 
-        final WorldCatEntity entityAfterUpdate = jpaTestEnvironment.getEntityManager()
-                .find(WorldCatEntity.class, "870970-basis:44260441");
-        assertThat("active holding symbols written", entityAfterUpdate.getActiveHoldingSymbols(),
-                is(Collections.singletonList("GHI")));
+        WorldCatEntity entityAfterUpdate = jpaTestEnvironment.getEntityManager().find(WorldCatEntity.class, "870970-basis:44260441");
+        assertEquals("active holding symbols written", List.of("GHI"), entityAfterUpdate.getActiveHoldingSymbols());
     }
 
     @Test
     public void timestamps() {
-        final WorldCatEntity entity = new WorldCatEntity()
-                .withPid("123456-test:id")
-                .withAgencyId(123456)
-                .withBibliographicRecordId("id");
+        WorldCatEntity entity = new WorldCatEntity().withPid("123456-test:id").withAgencyId(123456).withBibliographicRecordId("id");
 
         env().getPersistenceContext().run(() -> env().getEntityManager().persist(entity));
 
-        final Instant createdInitially = entity.getCreated();
-        final Instant modifiedInitially = entity.getModified();
-        assertThat("created after persist", createdInitially, is(notNullValue()));
-        assertThat("modified after persist", modifiedInitially, is(createdInitially));
+        Instant createdInitially = entity.getCreated();
+        Instant modifiedInitially = entity.getModified();
+        assertNotNull("created after persist", createdInitially);
+        assertEquals("modified after persist", createdInitially, modifiedInitially);
 
         env().getPersistenceContext().run(() -> entity.withOcn("ocn"));
 
-        assertThat("created after update", entity.getCreated(), is(createdInitially));
-        assertThat("modified after update", entity.getModified(), is(not(modifiedInitially)));
+        assertEquals("created after update", entity.getCreated(), createdInitially);
+        assertNotEquals("modified after update", modifiedInitially, entity.getModified());
     }
 
     private OcnRepo ocnRepo() {
         return new OcnRepo(jpaTestEnvironment.getEntityManager());
     }
 
-    private static int getPostgresqlPort() {
-        final String port = System.getProperty("postgresql.port");
-        if (port != null && !port.isEmpty()) {
-            return Integer.parseInt(port);
-        }
-        return 5432;
-    }
-
     private PGSimpleDataSource getDataSource() {
-        final PGSimpleDataSource datasource = new PGSimpleDataSource();
+        PGSimpleDataSource datasource = new PGSimpleDataSource();
         datasource.setDatabaseName("ocnrepo");
         datasource.setServerName("localhost");
         datasource.setPortNumber(getPostgresqlPort());
@@ -170,7 +151,7 @@ public class OcnRepoIT extends JpaIntegrationTest {
     }
 
     private void migrateDatabase(PGSimpleDataSource datasource) {
-        final OcnRepoDatabaseMigrator dbMigrator = new OcnRepoDatabaseMigrator(datasource);
+        OcnRepoDatabaseMigrator dbMigrator = new OcnRepoDatabaseMigrator(datasource);
         dbMigrator.migrate();
     }
 }
