@@ -7,12 +7,12 @@ package dk.dbc.ocnrepo;
 
 import dk.dbc.commons.jdbc.util.CursoredResultSet;
 import dk.dbc.ocnrepo.dto.WorldCatEntity;
+import jakarta.ejb.Stateless;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
 
-import javax.ejb.Stateless;
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -25,7 +25,8 @@ public class OcnRepo {
     @PersistenceContext(unitName = "ocnRepoPU")
     EntityManager entityManager;
 
-    public OcnRepo() {}
+    public OcnRepo() {
+    }
 
     public OcnRepo(EntityManager entityManager) {
         this.entityManager = entityManager;
@@ -38,19 +39,17 @@ public class OcnRepo {
      * @return list of managed WorldCatEntity objects, or empty list if none could be found
      */
     public List<WorldCatEntity> lookupWorldCatEntity(WorldCatEntity value) {
-        final List<WorldCatEntity> result = new ArrayList<>();
+        List<WorldCatEntity> result = new ArrayList<>();
         if (value != null) {
             if (value.getPid() != null) {
-                final WorldCatEntity entity = entityManager.find(WorldCatEntity.class, value.getPid());
+                WorldCatEntity entity = entityManager.find(WorldCatEntity.class, value.getPid());
                 if (entity != null) {
                     result.add(entity);
                 }
             } else if (value.getAgencyId() != null && value.getBibliographicRecordId() != null) {
-                entityManager.createNamedQuery(WorldCatEntity.GET_BY_AGENCYID_BIBLIOGRAPHICRECORDID_QUERY_NAME, WorldCatEntity.class)
-                        .setParameter("agencyId", value.getAgencyId())
-                        .setParameter("bibliographicRecordId", value.getBibliographicRecordId())
-                        .getResultList()
-                        .forEach(result::add);
+                result.addAll(entityManager.createNamedQuery(WorldCatEntity.GET_BY_AGENCYID_BIBLIOGRAPHICRECORDID_QUERY_NAME, WorldCatEntity.class)
+                        .setParameter("agencyId", value.getAgencyId()).setParameter("bibliographicRecordId", value.getBibliographicRecordId())
+                        .getResultList());
             }
         }
         return result;
@@ -62,10 +61,7 @@ public class OcnRepo {
      * @return a list of pids
      */
     public List<String> pidListFromOcn(String ocn) {
-        final List<String> pids = entityManager.createNamedQuery(
-            WorldCatEntity.GET_PID_LIST_BY_OCN_QUERY_NAME, String.class)
-            .setParameter("ocn", ocn).getResultList();
-        return pids;
+        return entityManager.createNamedQuery(WorldCatEntity.GET_PID_LIST_BY_OCN_QUERY_NAME, String.class).setParameter("ocn", ocn).getResultList();
     }
 
     /**
@@ -75,11 +71,10 @@ public class OcnRepo {
      */
     public Optional<String> getOcnByPid(String pid) {
         try {
-            final String ocn = entityManager.createNamedQuery(
-                WorldCatEntity.GET_OCN_BY_PID_QUERY_NAME, String.class)
-                .setParameter("pid", pid).getSingleResult();
+            String ocn = entityManager.createNamedQuery(WorldCatEntity.GET_OCN_BY_PID_QUERY_NAME, String.class)
+                    .setParameter("pid", pid).getSingleResult();
             return Optional.of(ocn);
-        } catch(NoResultException e) {
+        } catch (NoResultException e) {
             return Optional.empty();
         }
     }
@@ -89,9 +84,7 @@ public class OcnRepo {
      * @return result set of entities with lhr
      */
     public CursoredResultSet<WorldCatEntity> getEntitiesWithLHR() {
-        final Query query = entityManager.createNamedQuery(
-            WorldCatEntity.GET_ENTITIES_WITH_LHR_QUERY_NAME,
-            WorldCatEntity.class);
+        Query query = entityManager.createNamedQuery(WorldCatEntity.GET_ENTITIES_WITH_LHR_QUERY_NAME, WorldCatEntity.class);
         return new CursoredResultSet<>(query);
     }
 
