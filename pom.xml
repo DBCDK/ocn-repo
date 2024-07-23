@@ -34,6 +34,10 @@
       <url>https://mavenrepo.dbc.dk/content/groups/public/</url>
     </repository>
   </repositories>
+  <properties>
+    <sonar.projectKey>ocn-repo</sonar.projectKey>
+    <sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
+  </properties>
 
   <modules>
     <module>api</module>
