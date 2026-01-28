@@ -2,12 +2,12 @@ package dk.dbc.ocnrepo;
 
 import dk.dbc.commons.persistence.JpaIntegrationTest;
 import dk.dbc.commons.persistence.JpaTestEnvironment;
+import dk.dbc.commons.testcontainers.postgres.DBCPostgreSQLContainer;
 import dk.dbc.ocnrepo.dto.WorldCatEntity;
 import org.junit.Before;
 import org.junit.Test;
 import org.postgresql.ds.PGSimpleDataSource;
 
-import java.net.URISyntaxException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -24,19 +24,24 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 public class OcnRepoIT extends JpaIntegrationTest {
-    private static int getPostgresqlPort() {
-        String port = System.getProperty("postgresql.port");
-        if (port != null && !port.isEmpty()) {
-            return Integer.parseInt(port);
-        }
-        return 5432;
+    public static final DBCPostgreSQLContainer dbcPostgreSQLContainer = makePostgresContainer();
+
+    private static DBCPostgreSQLContainer makePostgresContainer() {
+        final DBCPostgreSQLContainer postgreSQLContainer = new DBCPostgreSQLContainer();
+        postgreSQLContainer.start();
+        postgreSQLContainer.exposeHostPort();
+        setupDatabase(postgreSQLContainer);
+        return postgreSQLContainer;
+    }
+
+    private static void setupDatabase(DBCPostgreSQLContainer dbcPostgreSQLContainer) {
+        OcnRepoDatabaseMigrator dbMigrator = new OcnRepoDatabaseMigrator(dbcPostgreSQLContainer.datasource());
+        dbMigrator.migrate();
     }
 
     @Override
     public JpaTestEnvironment setup() {
-        PGSimpleDataSource dataSource = getDataSource();
-        migrateDatabase(dataSource);
-        jpaTestEnvironment = new JpaTestEnvironment(dataSource, "ocnRepoIT");
+        jpaTestEnvironment = new JpaTestEnvironment((PGSimpleDataSource) dbcPostgreSQLContainer.datasource(), "ocnRepoIT");
         return jpaTestEnvironment;
     }
 
@@ -48,7 +53,7 @@ public class OcnRepoIT extends JpaIntegrationTest {
     }
 
     @Before
-    public void populateDatabase() throws URISyntaxException {
+    public void populateDatabase() {
         executeScriptResource("/populate.sql");
     }
 
@@ -133,20 +138,5 @@ public class OcnRepoIT extends JpaIntegrationTest {
 
     private OcnRepo ocnRepo() {
         return new OcnRepo(jpaTestEnvironment.getEntityManager());
-    }
-
-    private PGSimpleDataSource getDataSource() {
-        PGSimpleDataSource datasource = new PGSimpleDataSource();
-        datasource.setDatabaseName("ocnrepo");
-        datasource.setServerName("localhost");
-        datasource.setPortNumber(getPostgresqlPort());
-        datasource.setUser(System.getProperty("user.name"));
-        datasource.setPassword(System.getProperty("user.name"));
-        return datasource;
-    }
-
-    private void migrateDatabase(PGSimpleDataSource datasource) {
-        OcnRepoDatabaseMigrator dbMigrator = new OcnRepoDatabaseMigrator(datasource);
-        dbMigrator.migrate();
     }
 }
