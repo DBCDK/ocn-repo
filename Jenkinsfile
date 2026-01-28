@@ -51,7 +51,7 @@ pipeline {
                 branch "master"
             }
             steps {
-                sh "mvn jar:jar deploy:deploy"
+                sh "mvn deploy -DskipTests -DskipITs"
             }
         }
     }
